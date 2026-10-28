@@ -39,3 +39,17 @@ These are reported smoke-test results, not independently reproduced results or a
 - Model generation cancellation is not a hard, immediate interruption at the native engine level.
 - Background reminders can be delayed by Android/OEM battery management.
 - Local memory is app-private but not encrypted by default.
+
+
+## Repository repair audit — 2026-10-28
+
+The manifest referenced `@style/AppTheme` and `@xml/sven_accessibility_config`, but those resources were absent from the uploaded source tree. The following files have now been added:
+- `app/src/main/res/values/styles.xml`
+- `app/src/main/res/values/strings.xml`
+- `app/src/main/res/xml/sven_accessibility_config.xml`
+
+A GitHub Actions workflow at `.github/workflows/android-build.yml` now attempts `gradle --no-daemon assembleDebug` on pushes, pull requests, and manual dispatch. A workflow file being present is not proof that the workflow passed; inspect the Actions tab for the run result.
+
+**Outstanding native-runtime blocker:** the audited repository tree did not contain `app/src/main/jniLibs/arm64-v8a/libllama.so`, although `lib7sven_jni.so` depends on llama.cpp. The CMake file also references llama.cpp headers in a root-level `llama.cpp/` directory that is not included in the repository. Restore the exact compatible library and record its upstream version/license, or make the native build reproducibly compile llama.cpp from a pinned source revision. Do not claim local inference works from a clean checkout until native loading has been verified.
+
+The Gradle wrapper is also not included. The current workflow installs Gradle 8.2 explicitly rather than relying on `./gradlew`.
