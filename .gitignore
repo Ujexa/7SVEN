@@ -1,0 +1,21 @@
+# Android / Gradle
+.gradle/
+build/
+**/build/
+local.properties
+.externalNativeBuild/
+.cxx/
+*.iml
+
+# Local models, secrets and generated binaries
+*.gguf
+*.onnx
+*.tflite
+*.apk
+*.aab
+*.jks
+*.keystore
+secrets.properties
+.env
+*.log
+.DS_Store
