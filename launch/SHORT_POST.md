@@ -1,1 +1,0 @@
-Building 7SVEN at Ujexa: a local-first Android phone assistant combining on-device inference with phone tools, memory, tasks, reminders and voice interaction. v1.4.1 has passed core phone smoke tests; public source prep and license checks are underway. Early-stage, with limitations documented.
