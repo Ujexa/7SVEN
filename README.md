@@ -4,7 +4,7 @@
 
 It combines on-device language-model inference with Android tools and accessibility-based interaction to help carry out phone tasks from text or voice. The project is designed around local execution and explicit user control—not as a claim that every phone task is already autonomous or universally reliable.
 
-> **Status:** v1.4.1 is a tested development build. The maintainer has exercised core commands on a physical Android phone, including flashlight on/off, volume adjustment, opening Settings without making changes, unknown-app handling, STOP, and repeated commands. This is not yet a standardized public benchmark or a claim of production-grade reliability.
+> **Status:** v1.4.1 is a tested development build. The maintainer has exercised core commands on a physical Android phone, including flashlight on/off, volume adjustment, opening Settings without making changes, unknown-app handling, STOP, and repeated commands. This is not a standardized public benchmark or a claim of production-grade reliability.
 
 ## Current capabilities
 
@@ -30,18 +30,26 @@ Availability of individual functions depends on Android version, granted permiss
 - **Memory storage:** local app-private storage is not the same as encrypted storage. Do not store passwords, financial secrets, or other highly sensitive information.
 - **Hardware scope:** the packaged native libraries target `arm64-v8a`; this is not a universal APK for all Android devices.
 
+## Current repository build status
+
+The Android resources referenced by the manifest have been restored under `app/src/main/res/`. A GitHub Actions workflow now attempts a debug build on pushes and pull requests.
+
+**Important native-runtime gap:** the repository currently contains `lib7sven_jni.so` and three ggml libraries, but the required `app/src/main/jniLibs/arm64-v8a/libllama.so` was not present at the last source audit. The JNI library depends on llama.cpp, so local inference is not expected to work from this checkout until the matching `libllama.so` is restored. The source CMake file also refers to llama.cpp headers in an external `llama.cpp/` directory that is not vendored here. Do not treat a successful Java/Kotlin compile as proof that native inference works.
+
+The repository still needs a reproducible, documented path for obtaining/building the exact matching native runtime and its license notices. No clean build is claimed until the workflow result is green and native loading is verified on a device.
+
 ## Privacy model
 
 The app manifest intentionally omits the `INTERNET` permission in the current source, and core inference is intended to run on-device. The model file is not included in this repository. Verify the final merged manifest and all transitive dependencies before each release; a local-first design should not be treated as a substitute for inspecting the actual build.
 
 ## Build and setup
 
-This repository is based on a Termux/Android SDK build workflow and includes the v1.4.1 source integration. It is **not yet a turnkey Android Studio project**: the native libraries and model assets have separate provenance and setup requirements, and the exact local build environment may need adjustment.
+This repository is based on a Termux/Android SDK build workflow and includes the v1.4.1 source integration. It is **not yet a turnkey Android Studio project**.
 
-1. Install a compatible JDK 17, Android SDK (platform 34), Android NDK, Gradle 8.2, CMake, and `unzip`.
+1. Install JDK 17, Android SDK (platform 34), Android NDK, Gradle 8.2, CMake, and `unzip`.
 2. Place the required GGUF model at the location expected by the app's model-loading code. **Do not commit the model file**; follow the model's own license and distribution terms.
-3. Verify all native libraries in `app/src/main/jniLibs/arm64-v8a/` and the wake-word assets expected by `WakeWordService`.
-4. Build with the Android Gradle Plugin/Gradle versions specified by the project:
+3. Verify all native libraries in `app/src/main/jniLibs/arm64-v8a/`. In particular, restore the exact compatible `libllama.so` before expecting native inference to work.
+4. Build with:
    ```bash
    gradle --no-daemon assembleDebug
    ```
