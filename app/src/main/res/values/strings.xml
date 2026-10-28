@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">7SVEN</string>
+    <string name="sven_accessibility_description">Allows 7SVEN to inspect visible interface elements and perform explicitly requested actions. Use only when you understand and accept this access.</string>
+</resources>
