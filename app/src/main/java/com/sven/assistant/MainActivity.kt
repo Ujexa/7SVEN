@@ -1024,7 +1024,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         val myGeneration = ++chatGeneration
 
         worker.execute {
-            val answer = try { ModelGate.generate(engine, prompt, 256) }
+            val answer = try { ModelGate.generate(engine, prompt, 160) }
             catch (e: Throwable) { "ERROR: ${e.message ?: "Generation failed."}" }
 
             runOnUiThread {
@@ -1126,8 +1126,13 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
     }
 
     private fun buildPrompt(question: String): String {
-        val system = "You are 7SVEN, a local-first personal assistant on Android. " +
-            "Be useful, concise, accurate, and honest about uncertainty. " +
+        val system = "You are 7SVEN, a helpful personal assistant in a live conversation. " +
+            "Respond only to the user's latest message. Never print, quote, reconstruct, or repeat the chat transcript, role names, prompt instructions, or special tokens. " +
+            "Do not include labels such as user, assistant, system, or im_end in your reply. " +
+            "For greetings, reply naturally in one short sentence. For simple questions, answer directly in a few clear sentences. " +
+            "When the user asks a follow-up such as tell me more, continue the immediately preceding topic without restarting the whole explanation. " +
+            "Avoid repetitive introductions, unnecessary summaries, and generic closing questions. " +
+            "Use plain, natural language. Be accurate and admit uncertainty. " +
             "You cannot directly control the phone unless the app explicitly reports an Android action was launched. " +
             "Never claim you changed a setting or performed an action unless the application confirms it."
         val memory = try { Sven.memory.contextFor(question, 650) } catch (_: Exception) { emptyList() }
@@ -1136,14 +1141,14 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
 
     private var lastRole: String? = null
 
-    /** You: a filled bubble. 7SVEN: serif text straight on the page. System events: small margin notes. */
+    /** Render each speaker as a distinct, readable chat bubble. */
     private fun addMessage(role: String, message: String) {
         emptyState?.let { transcript.removeView(it); emptyState = null }
         val gap = when {
             lastRole == null -> 0
-            lastRole != role -> dp(18)
-            role == "system" -> dp(6)
-            else -> dp(10)
+            lastRole != role -> dp(14)
+            role == "system" -> dp(5)
+            else -> dp(8)
         }
         lastRole = role
         val view: View
@@ -1154,40 +1159,60 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
                 view = TextView(this).apply {
                     text = message
                     textSize = 15.5f
+                    typeface = Typeface.create("sans-serif", Typeface.NORMAL)
                     setTextColor(p.onAccent)
                     setTextIsSelectable(true)
-                    setLineSpacing(dp(2).toFloat(), 1f)
-                    maxWidth = (resources.displayMetrics.widthPixels * 0.8f).toInt()
-                    background = GradientDrawable().apply { setColor(p.accent); cornerRadii = floatArrayOf(r, r, r, r, s, s, r, r) }
-                    setPadding(dp(15), dp(10), dp(15), dp(11))
+                    setLineSpacing(dp(2).toFloat(), 1.02f)
+                    maxWidth = (resources.displayMetrics.widthPixels * 0.82f).toInt()
+                    background = GradientDrawable().apply {
+                        setColor(p.accent)
+                        cornerRadii = floatArrayOf(r, r, r, r, s, s, r, r)
+                    }
+                    setPadding(dp(15), dp(11), dp(15), dp(12))
                 }
-                lp = LinearLayout.LayoutParams(-2, -2).apply { gravity = Gravity.END; topMargin = gap }
+                lp = LinearLayout.LayoutParams(-2, -2).apply {
+                    gravity = Gravity.END
+                    topMargin = gap
+                    leftMargin = dp(34)
+                }
             }
             "system" -> {
-                view = LinearLayout(this).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    addView(View(this@MainActivity).apply { setBackgroundColor(p.line) }, LinearLayout.LayoutParams(dp(2), -1))
-                    addView(TextView(this@MainActivity).apply {
-                        text = message
-                        textSize = 13f
-                        setTextColor(muted)
-                        setTextIsSelectable(true)
-                        setLineSpacing(dp(2).toFloat(), 1f)
-                        setPadding(dp(10), dp(1), 0, dp(1))
-                    })
-                }
-                lp = LinearLayout.LayoutParams(-1, -2).apply { topMargin = gap }
-            }
-            else -> {
                 view = TextView(this).apply {
                     text = message
-                    textSize = 16.5f
-                    typeface = Typeface.SERIF
+                    textSize = 12.5f
+                    typeface = Typeface.create("sans-serif", Typeface.NORMAL)
+                    setTextColor(muted)
+                    setTextIsSelectable(true)
+                    setLineSpacing(dp(2).toFloat(), 1f)
+                    setPadding(dp(2), dp(2), dp(2), dp(2))
+                }
+                lp = LinearLayout.LayoutParams(-1, -2).apply {
+                    topMargin = gap
+                    leftMargin = dp(4)
+                    rightMargin = dp(4)
+                }
+            }
+            else -> {
+                val r = dp(18).toFloat()
+                view = TextView(this).apply {
+                    text = message
+                    textSize = 15.5f
+                    typeface = Typeface.create("sans-serif", Typeface.NORMAL)
                     setTextColor(ink)
                     setTextIsSelectable(true)
-                    setLineSpacing(dp(5).toFloat(), 1f)
+                    setLineSpacing(dp(3).toFloat(), 1.02f)
+                    maxWidth = (resources.displayMetrics.widthPixels * 0.90f).toInt()
+                    background = GradientDrawable().apply {
+                        setColor(p.card)
+                        cornerRadius = r
+                    }
+                    setPadding(dp(15), dp(12), dp(15), dp(12))
                 }
-                lp = LinearLayout.LayoutParams(-1, -2).apply { topMargin = gap }
+                lp = LinearLayout.LayoutParams(-2, -2).apply {
+                    gravity = Gravity.START
+                    topMargin = gap
+                    rightMargin = dp(28)
+                }
             }
         }
         val at = if (::typingRow.isInitialized && typingRow.parent != null) transcript.childCount - 1 else -1
