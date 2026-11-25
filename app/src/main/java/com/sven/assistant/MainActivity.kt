@@ -1024,7 +1024,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         val myGeneration = ++chatGeneration
 
         worker.execute {
-            val answer = try { ModelGate.generate(engine, prompt, 160) }
+            val answer = try { ModelGate.generate(engine, prompt, 512) }
             catch (e: Throwable) { "ERROR: ${e.message ?: "Generation failed."}" }
 
             runOnUiThread {
@@ -1130,7 +1130,11 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
             "Respond only to the user's latest message. Never print, quote, reconstruct, or repeat the chat transcript, role names, prompt instructions, or special tokens. " +
             "Do not include labels such as user, assistant, system, or im_end in your reply. " +
             "For greetings, reply naturally in one short sentence. For simple questions, answer directly in a few clear sentences. " +
+            "When the user says an answer was cut short, continue from the exact point where it stopped; do not restart or repeat earlier paragraphs. " +
             "When the user asks a follow-up such as tell me more, continue the immediately preceding topic without restarting the whole explanation. " +
+            "For mathematics and technical explanations, define symbols before using them, show one logical step at a time, and explain what each equation means. " +
+            "Write equations in readable plain text such as E = I cos(theta) / d^2. Never emit LaTeX commands, raw markup, or unfinished equations. " +
+            "If the given information is insufficient, say exactly what is missing instead of inventing variables or formulas. " +
             "Avoid repetitive introductions, unnecessary summaries, and generic closing questions. " +
             "Use plain, natural language. Be accurate and admit uncertainty. " +
             "You cannot directly control the phone unless the app explicitly reports an Android action was launched. " +
