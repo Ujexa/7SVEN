@@ -31,7 +31,7 @@ jobs:
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
 
-      - name: Verify all native libraries are packaged
+      - name: Verify native libraries and permission hygiene
         run: |
           APK="$(find app/build/outputs/apk/debug -maxdepth 1 -name '*.apk' -print -quit)"
           test -n "$APK"
@@ -39,7 +39,11 @@ jobs:
             test -f "app/src/main/jniLibs/arm64-v8a/$LIB" || { echo "::error::Missing source library: $LIB"; exit 1; }
             unzip -l "$APK" | grep -q "lib/arm64-v8a/$LIB" || { echo "::error::APK does not package $LIB."; exit 1; }
           done
-
+          MANIFEST="app/src/main/AndroidManifest.xml"
+          if grep -Eq 'SYSTEM_ALERT_WINDOW|USE_FULL_SCREEN_INTENT|ACCESS_WIFI_STATE|android.permission.BLUETOOTH|android.permission.INTERNET' "$MANIFEST"; then
+            echo "::error::Manifest contains a permission removed by the security audit."
+            exit 1
+          fi
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
