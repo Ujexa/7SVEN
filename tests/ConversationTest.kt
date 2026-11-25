@@ -102,6 +102,12 @@ fun main() {
     val huge = PromptBuilder.build(sys, List(30) { "memory line number $it ".repeat(5) }, listOf("user" to "x".repeat(5000)))
     T.check("huge input still bounded (${huge.chars})", huge.chars <= PromptBuilder.MAX_CHARS + 900)
 
+    // ---- chat output cleanup: prevent echoed ChatML transcript leaking into UI
+    val echoed = "Hello! How can I assist you today?|im_end| user What is ambient lighting? | assistant Ambient lighting is general room lighting. |im_end| user Could you provide more information on direct lighting? | assistant Direct lighting shines directly on a subject."
+    val latest = ChatOutput.clean(echoed, "Could you provide more information on direct lighting?")
+    T.eq("extract current answer from echoed transcript", "Direct lighting shines directly on a subject.", latest)
+    T.eq("remove standalone ChatML markers", "A useful answer.", ChatOutput.clean("<|im_start|>assistant A useful answer.<|im_end|>"))
+    T.eq("remove role-only artifacts", "The answer.", ChatOutput.clean("|im_end| assistant The answer."))
     // ---- speech
     T.eq("clean ids", "Saved number 12: The user's name is Sam.", Speech.clean("Saved #12: The user's name is Sam."))
     T.check("clean bullets", !Speech.clean("✓ Open Maps\n• Alarm 07:30").contains("✓"))
