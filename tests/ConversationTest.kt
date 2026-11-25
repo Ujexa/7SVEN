@@ -16,6 +16,7 @@ fun main() {
     T.check("never mind", FollowUps.resolve("Never mind.", ConversationState(), now, z) is Resolution.Interrupt)
     T.eq("thanks", "You're welcome.", (FollowUps.resolve("thanks!", st("open maps"), now, z) as Resolution.Say).text)
     T.check("greeting", FollowUps.resolve("hello", ConversationState(), now, z) is Resolution.Say)
+    T.eq("greetings gets concise local reply", "Hello. How can I help you today.", (FollowUps.resolve("Greetings", ConversationState(), now, z) as Resolution.Say).text)
 
     // alarm adjustments
     var s = st("set alarm for 7:30 am")
