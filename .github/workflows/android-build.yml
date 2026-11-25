@@ -31,12 +31,14 @@ jobs:
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
 
-      - name: Verify native runtime is packaged
+      - name: Verify all native libraries are packaged
         run: |
-          test -f app/src/main/jniLibs/arm64-v8a/libllama.so || { echo "::error::Missing libllama.so. The JNI bridge requires the matching llama.cpp runtime."; exit 1; }
           APK="$(find app/build/outputs/apk/debug -maxdepth 1 -name '*.apk' -print -quit)"
           test -n "$APK"
-          unzip -l "$APK" | grep -q 'lib/arm64-v8a/libllama.so' || { echo "::error::APK does not package libllama.so."; exit 1; }
+          for LIB in lib7sven_jni.so libllama.so libggml.so libggml-base.so libggml-cpu.so; do
+            test -f "app/src/main/jniLibs/arm64-v8a/$LIB" || { echo "::error::Missing source library: $LIB"; exit 1; }
+            unzip -l "$APK" | grep -q "lib/arm64-v8a/$LIB" || { echo "::error::APK does not package $LIB."; exit 1; }
+          done
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
