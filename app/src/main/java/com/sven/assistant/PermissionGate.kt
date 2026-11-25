@@ -17,8 +17,7 @@ internal enum class Capability(val label: String, val runtime: Array<String>) {
     MICROPHONE("Microphone", arrayOf(Manifest.permission.RECORD_AUDIO)),
     ACCESSIBILITY("Accessibility service", emptyArray()),
     NOTIFICATIONS("Notifications", emptyArray()),
-    EXACT_ALARMS("Exact alarms", emptyArray()),
-    OVERLAY("Display over other apps", emptyArray());
+    EXACT_ALARMS("Exact alarms", emptyArray());
 
     fun isGranted(ctx: Context): Boolean = when (this) {
         CONTACTS, CALENDAR, MICROPHONE ->
@@ -26,7 +25,6 @@ internal enum class Capability(val label: String, val runtime: Array<String>) {
         ACCESSIBILITY -> SvenAccessibilityService.instance != null
         NOTIFICATIONS -> try { (ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).areNotificationsEnabled() } catch (_: Exception) { true }
         EXACT_ALARMS -> Build.VERSION.SDK_INT < 31 || (ctx.getSystemService(Context.ALARM_SERVICE) as AlarmManager).canScheduleExactAlarms()
-        OVERLAY -> Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(ctx)
     }
 
     val needsRuntimePrompt get() = runtime.isNotEmpty()
@@ -37,7 +35,6 @@ internal enum class Capability(val label: String, val runtime: Array<String>) {
         NOTIFICATIONS -> Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, ctx.packageName)
         EXACT_ALARMS -> if (Build.VERSION.SDK_INT >= 31) Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${ctx.packageName}"))
         else Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${ctx.packageName}"))
-        OVERLAY -> Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:${ctx.packageName}"))
         else -> Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${ctx.packageName}"))
     }
 }
@@ -61,6 +58,5 @@ internal object PermissionGate {
         Capability.MICROPHONE -> "I need the microphone permission for voice."
         Capability.NOTIFICATIONS -> "Notifications are blocked for 7SVEN, so reminders cannot alert you. Enable them in SETUP."
         Capability.EXACT_ALARMS -> "Exact alarms are not allowed, so reminders may arrive a few minutes late. Enable it in SETUP."
-        Capability.OVERLAY -> "Display over other apps is off."
     }
 }
