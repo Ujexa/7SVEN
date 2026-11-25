@@ -235,7 +235,9 @@ internal object PromptBuilder {
         val reserve = 520
         var budget = maxChars - head("").length - tail.length - reserve
         val chosen = ArrayList<Pair<String, String>>()
-        for ((role, text) in convo.asReversed()) {
+        // A small on-device model performs better with a short, recent dialogue window.
+        // Older turns are represented by the compact summary below, not replayed verbatim.
+        for ((role, text) in convo.asReversed().take(8)) {
             val t = text.trim().take(TURN_CAP)
             val cost = role.length + t.length + 28
             if (cost > budget && chosen.isNotEmpty()) break
