@@ -124,7 +124,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         if (!p.dark) window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
         tts = TextToSpeech(this, this)
         buildUi()
-        history.addAll(PersistenceStore.loadHistory(this))
+        history.addAll(PersistenceStore.loadHistory(this).map { (role, message) -> role to if (role == "assistant") ChatOutput.clean(message) else message })
         if (history.isEmpty()) showEmptyState() else history.forEach { (role, message) -> addMessage(role, message) }
         updateStatus("LOCAL CORE · RESTORING MODEL")
         restoreModelIfAvailable()
@@ -1029,7 +1029,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
 
             runOnUiThread {
                 if (isDestroyed || myGeneration != chatGeneration) return@runOnUiThread   // interrupted: drop the answer
-                val cleaned = answer.replace(Regex("<\\|[^>]+\\|>"), "").trim()
+                val cleaned = ChatOutput.clean(answer, question)
                 busy = false
                 setComposerEnabled(true)
                 core.mode = "ready"
