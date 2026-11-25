@@ -275,6 +275,7 @@ internal object ChatOutput {
                 else if (afterQuestion.isNotBlank()) text = afterQuestion
             }
         }
+        text = text.replace(Regex("""(?i)(?:<\\|im_end\\|>|\\|im_end\\|)\\s*(?:system|user|assistant)\\b"""), " ")
         text = roleMarker.replace(text, " ")
         text = tokenMarker.replace(text, " ")
         text = bareRoleLine.replace(text, " ")
