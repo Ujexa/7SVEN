@@ -252,6 +252,39 @@ internal object PromptBuilder {
     }
 }
 
+
+/**
+ * Removes leaked prompt/template structure from small-model chat completions.
+ * Some GGUF/model combinations render ChatML boundary tokens as plain text or
+ * echo the conversation before answering. Prefer the text after the current
+ * user turn when the model has repeated the prompt.
+ */
+internal object ChatOutput {
+    private val roleMarker = Regex("""(?i)(?:<\|im_start\|>|\|im_start\|)\s*(system|user|assistant)\s*""")
+    private val tokenMarker = Regex("""(?i)<\|(?:im_start|im_end|im_sep|fim_suffix|fim_prefix|fim_middle|endoftext)\|>|\|(?:im_start|im_end|im_sep|fim_suffix|fim_prefix|fim_middle|endoftext)\|""")
+    private val bareRoleLine = Regex("""(?im)^\s*(?:system|user|assistant)\s*[:：]?\s*$""")
+
+    fun clean(raw: String, currentQuestion: String = ""): String {
+        var text = raw.trim()
+        if (currentQuestion.isNotBlank()) {
+            val questionAt = text.lastIndexOf(currentQuestion, ignoreCase = true)
+            if (questionAt >= 0) {
+                val afterQuestion = text.substring(questionAt + currentQuestion.length)
+                val assistant = Regex("""(?i)(?:<\|im_start\|>|\|im_start\|)?\s*assistant\s*""").findAll(afterQuestion).lastOrNull()
+                if (assistant != null) text = afterQuestion.substring(assistant.range.last + 1)
+                else if (afterQuestion.isNotBlank()) text = afterQuestion
+            }
+        }
+        text = roleMarker.replace(text, " ")
+        text = tokenMarker.replace(text, " ")
+        text = bareRoleLine.replace(text, " ")
+        text = text.replace(Regex("""(?i)\|\s*(?:system|user|assistant)\s*\|?"""), " ")
+        text = text.replace(Regex("""(?m)^\s*(?:system|user|assistant)\s*[:：]\s*"""), "")
+        text = text.replace(Regex("""\s+"""), " ").trim()
+        return text
+    }
+}
+
 // ----------------------------------------------------------------------------- speech
 
 internal object Speech {
