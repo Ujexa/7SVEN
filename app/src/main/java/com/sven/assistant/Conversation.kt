@@ -103,7 +103,7 @@ internal object FollowUps {
         if (l in speakAgain && st.lastReply.isNotBlank()) return Resolution.SpeakLast
         if (l in thanks) return Resolution.Say("You're welcome.")
         if (l in ack && st.lastReply.isNotBlank() && st.pendingSuggestion == null) return Resolution.Say("Okay.")
-        if (Regex("^(?:hi|hello|hey|yo|good (?:morning|afternoon|evening))(?: there| sven)?$", I).matches(l)) return Resolution.Say("Hi. What can I do for you?")
+        if (Regex("^(?:hi|hello|hey|yo|greetings?)(?: there| sven)?$|^good (?:morning|afternoon|evening)(?: there)?$", I).matches(l)) return Resolution.Say("Hello. How can I help you today?")
 
         // ---- adjustments to the last time-based command
         adjust(l, st, now, zone)?.let { return it }
