@@ -664,11 +664,16 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
     private fun showSetupDialog() {
         val micOk = Build.VERSION.SDK_INT < 23 ||
             checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED
-        val overlayOk = Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(this)
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(20), dp(8), dp(20), dp(4))
         }
+        content.addView(TextView(this).apply {
+            text = "Accessibility access is powerful. When enabled, 7SVEN can read visible screen labels and controls and can tap, scroll, or enter text to carry out commands you request. Avoid using it on banking, payment, password, or other sensitive screens. You can turn it off at any time in Android Accessibility settings."
+            textSize = 12f
+            setTextColor(ink)
+            setPadding(0, dp(8), 0, dp(10))
+        })
         fun line(label: String, ok: Boolean) = content.addView(TextView(this).apply {
             text = (if (ok) "●  " else "○  ") + label
             textSize = 13f
@@ -681,16 +686,12 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         )
         line("Local model loaded", modelReady)
         line("Accessibility service (the hands)", SvenAccessibilityService.instance != null)
-        line("Display over other apps (wake word + background launches)", overlayOk)
         line("Microphone permission", micOk)
         line("Notifications (reminders can alert you)", Capability.NOTIFICATIONS.isGranted(this))
         line("Exact alarms (reminders arrive on time)", Capability.EXACT_ALARMS.isGranted(this))
         line("Contacts (call/text by name; optional)", Capability.CONTACTS.isGranted(this))
         line("Calendar (briefing, events; optional)", Capability.CALENDAR.isGranted(this))
         action("1 · enable accessibility") { safeStart(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
-        action("2 · allow display over apps") {
-            safeStart(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
-        }
         action("3 · microphone permission") {
             if (Build.VERSION.SDK_INT >= 23) {
                 requestPermissions(arrayOf(android.Manifest.permission.RECORD_AUDIO), REQUEST_WAKE_PERMISSION)
