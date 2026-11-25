@@ -284,6 +284,16 @@ internal object ChatOutput {
         text = text.replace(Regex("""(?i)\|\s*(?:system|user|assistant)\s*\|?"""), " ")
         text = text.replace(Regex("""(?m)^\s*(?:system|user|assistant)\s*[:：]\s*"""), "")
         text = text.replace(Regex("""\s+"""), " ").trim()
+        // Render common model-emitted LaTeX as readable plain text on Android TextViews.
+        text = text.replace("\\(", "").replace("\\)", "").replace("\\[", "").replace("\\]", "")
+        text = text.replace(Regex("""\\frac\{([^{}]+)\}\{([^{}]+)\}"""), "$1 / $2")
+        text = text.replace(Regex("""\\sqrt\{([^{}]+)\}"""), "√($1)")
+        text = text.replace(Regex("""\\text\{([^{}]*)\}"""), "$1")
+        text = text.replace("\\pi", "π").replace("\\theta", "theta")
+            .replace("\\cdot", " × ").replace("\\times", " × ")
+            .replace("\\approx", "≈").replace("\\le", "≤").replace("\\ge", "≥")
+            .replace("\\left", "").replace("\\right", "")
+        text = text.replace("**", "").replace("`", "")
         return text
     }
 }
