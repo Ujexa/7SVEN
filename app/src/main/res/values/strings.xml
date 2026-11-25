@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">7SVEN</string>
-    <string name="sven_accessibility_description">Allows 7SVEN to inspect visible interface elements and perform explicitly requested actions. Use only when you understand and accept this access.</string>
+    <string name="sven_accessibility_description">Allows 7SVEN to read visible screen labels and controls and perform taps, scrolling, or text entry for actions you explicitly request. Avoid using this service on banking, payment, password, or other sensitive screens. You can disable it in Android Accessibility settings at any time.</string>
 </resources>
